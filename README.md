@@ -9,4 +9,4 @@ Although the Git guide is non-technical, it works from the premise that the best
 
 The C# guide is very much incomplete, and is written for people who are already developers and who might need to pick up C# in a hurry.  I made a valient attempt to write it without including any forward references, which is something of a tricky task.
 
-This repo is not very frequently updated, but I am always open to suggestions for edits or inclusions.
+This repo is not very frequently updated, but I am always open to suggestions for edits or inclusions.  As both of the current projects are works-in-progress, both come to a juddering halt midway through at present.
