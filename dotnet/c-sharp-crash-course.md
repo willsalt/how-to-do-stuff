@@ -60,9 +60,9 @@ In general, below, most version number references are to the relevant version of
 |             |               | 4.8                    |                   |                       |
 |             | 8.0           |                        |                   |                       |
 |             |               | N/A                    | 3.0               | 2.1                   |
-|             | Not announced | N/A                    | 5                 | Not announced         |
+|             | 9.0           | N/A                    | 5                 | None as yet           |
 
-I've omitted a couple versions of .NET Standard between 1.4 and 2.0 which were implemented by .NET Core from version 1, but not implemented by .NET Framework until version 4.7.2.  Additionally, Microsoft have already announced that .NET Framework 4.8 will not implement all of .NET Standard 2.1 and that .NET Framework will only receive bug fixes from that point onwards.
+I've omitted a couple versions of .NET Standard between 1.4 and 2.0 which were implemented by .NET Core from version 1, but not implemented by .NET Framework until version 4.7.2.  Additionally, Microsoft have previously announced that .NET Framework 4.8 will not implement all of .NET Standard 2.1 and that .NET Framework will only receive bug fixes from that point onwards.
 
 ### Building and running code
 
@@ -439,6 +439,15 @@ Constructors are called using the `new` operator.
 ```
 Egg egg1 = new Egg();
 Egg egg2 = new Egg(6d, 4f);
+```
+
+From C# 9.0 onwards, you can omit the type name when calling the constructor, if the compiler can see what type is being assigned to.
+
+```
+Egg egg1 = new();        // These are both equivalent to the above in C# 9.0
+Egg egg2 = new(6d, 4f);  // but fail in older versions
+
+var egg3 = new();        // This is a syntax error
 ```
 
 There is no implicit inheritance between constructors.  The only constructors available in a class are those defined in the class itself, not those defined in its base classes.  However, when you call a constructor, it always calls a constructor of the immediate superclass first, before it executes.  This constructor will then call its superclass constructor, and so on.  The end effect is that a chain of constructors will execute, starting with the constructor of `object` and then executing the constructors of derived types in order, until the constructor of the specific type is executed last.
