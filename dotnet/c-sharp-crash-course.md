@@ -1854,18 +1854,25 @@ Note the tail call to the base method: this is vital to ensure that private memb
 
 How do you know when you need to implement this type of pattern?  In general, if the class you are inheriting from implements `IDisposable` and defines a `protected virtual void Dispose(bool d)` method, you should assume that it is using the dispose pattern as described here, and therefore you should override the `Dispose(bool d)` method as per this example.
 
-The above pattern is straightforward enough&mdash;and there is more information and examples of more complex cases on the .NET documentation website&mdash;but what is the best way to ensure that you do always call `Dispose()` on each `IDisposable` object before it falls out of scope?  The answer to this is: with sensible use of the `using` keyword.  This is used to define a block of code with a variable declared at its start; when the variable falls out of scope at the end of the block, its `Dispose()` method will automatically be called.
+The above pattern is straightforward enough&mdash;and there is more information and examples of more complex cases on the .NET documentation website&mdash;but what is the best way to ensure that you do always call `Dispose()` on each `IDisposable` object before it falls out of scope?  The answer to this is: with sensible use of the `using` keyword.  The `using` statement declares and initialises a variable; when the variable falls out of scope at the end of the block, its `Dispose()` method will automatically be called.  Traditionally, the `using` statement required its own block of code; since C# 8.0, the "simple `using`" statement can be used to declare a variable which will be disposed at the end of the enclosing block.
 
 In use, `using` looks line this:
 
 ```
+// Traditional style
 using (IDbConnection conn = GetOpenDatabaseConnection())
 {
     // code using the "conn" variable goes here.
 }
+// "conn" is out of scope and has been disposed
+
+// "Simple" style - C# 8 and newer.  This variable's scope will be the same as a normal declaration.
+using IDbConnection conn8 = GetOpenDatabaseConnection();
 ```
 
-The important thing here is that the `conn` variable is declared and instantiated at the start of the block&mdash;we have hidden the details of how to open our connection behind a method, for the purposes of this example.  The connection can then be used inside the block.  At the end of the block, the declared variable falls out of scope, and `conn.Dispose()` is *automatically* called for us at this point, through boilerplate code inserted into our CIL by the compiler.  Essentially, the above code is functionally equivalent to:
+The "simple style" is equivalent to a block using statement whose block is the final block of code inside its enclosing method, which is a very common use case if your code is divided into suitably-sized methods.
+
+The important thing here is that the `conn` variable is declared and instantiated at the start of the block&mdash;we have hidden the details of how to open our connection behind a method, for the purposes of this example.  The connection can then be used as long as the variable remains in scope.  When the declared variable falls out of scope, `conn.Dispose()` is *automatically* called for us, through boilerplate code inserted into our CIL by the compiler.  Essentially, the above code is functionally equivalent to:
 
 ```
 {
@@ -1907,7 +1914,9 @@ using (StreamReader reader = new StreamReader(stream))
 }
 ```
 
-This is idiomatic .NET file-reading code, and incidentally shows a fairly common code formatting style when using nested `using` blocks: if the only code contained within one `using` statement is a nested `using` statement, some coding styles will use neither indentation nor braces for the contents of everything other than the innermost `using`, to avoid excessive indentation.  More importantly, note that according to the documentation for the `StreamReader` class, it releases all of its resources when `Dispose()` is called.  This will include the `FileStream` from the outer block, because this was injected into the `StreamReader` as a resource.  This means firstly that `stream.Dispose()` will be called twice, once from `reader.Dispose()` at the end of the inner block; then again at the end of the outer block.  This is fine; because as we said earlier a `Dispose()` method must always be coded to be able to handle multiple calls.  However, it does mean that we have to be careful not to accidentally write code like this:
+This is idiomatic .NET file-reading code, and incidentally shows what was a fairly common code formatting style when using nested `using` blocks, before the "simple using statement" was introduced: if the only code contained within one `using` statement is a nested `using` statement, some coding styles will use neither indentation nor braces for the contents of everything other than the innermost `using`, to avoid excessive indentation.  This formatting style is very easily confused with a simple using statement: the only difference is the lack of a `;` at the end of the first using statement, which means that this is a block using statement whose block consists solely of the following using statement.
+
+More importantly, note that according to the documentation for the `StreamReader` class, it releases all of its resources when `Dispose()` is called.  This will include the `FileStream` from the outer block, because this was injected into the `StreamReader` as a resource.  This means firstly that `stream.Dispose()` will be called twice, once from `reader.Dispose()` at the end of the inner block; then again at the end of the outer block.  This is fine; because as we said earlier a `Dispose()` method must always be coded to be able to handle multiple calls.  However, it does mean that we have to be careful not to accidentally write code like this:
 
 ```
 using (FileStream stream = new FileStream(fileName, FileMode.Open))
